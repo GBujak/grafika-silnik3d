@@ -3,7 +3,7 @@ project('grafika-silnik3d', 'cpp',
     license: 'GPLv3',
     default_options: ['cpp_std=c++17'])
 
-sdl2_dependency = dependency('sdl2')
+glfw_dependency = dependency('glfw3')
 glew_dependency = dependency('glew')
 
 incdir = include_directories('include')
@@ -12,5 +12,5 @@ subdir('src')
 
 executable('grafika-silnik3d', src_files,
     include_directories: incdir,
-    dependencies: [sdl2_dependency, glew_dependency]
+    dependencies: [glfw_dependency, glew_dependency]
     )
