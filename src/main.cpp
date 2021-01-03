@@ -122,7 +122,6 @@ int main(int argc, char *argv[]) {
     auto program = create_shader(vertex_shader, fragment_shader);
     glUseProgram(program);
 
-
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
 
