@@ -8,59 +8,27 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <camera.hpp>
+#include <shader.hpp>
+
 #include <string>
 #include <iostream>
 #include <alloca.h>
 
-const GLint WIDTH = 1280, HEIGHT = 720;
+#include <cube.hpp>
 
-static unsigned compile_shader(unsigned type, std::string& src) {
-    auto id = glCreateShader(type);
-    auto src_c_str = src.c_str();
-    glShaderSource(id, 1, &src_c_str, nullptr);
-    glCompileShader(id);
+constexpr unsigned WIDTH = 1280, HEIGHT = 720;
 
-    int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        auto msg = (char*) alloca(length * sizeof(char));
-        glGetShaderInfoLog(id, length, &length, msg);
-        std::cout << "Failed to compile "
-            << (type == GL_VERTEX_SHADER ? "vertex" : "fragment")
-            << " shader:\n" << msg << std::endl;
-        return 0;
-    }
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void process_input(GLFWwindow *window);
 
-    return id;
-}
+Camera default_camera {};
 
-static unsigned create_shader(std::string& vert_shader, std::string& frag_shader) {
-    auto program = glCreateProgram();
-    auto vs = compile_shader(GL_VERTEX_SHADER, vert_shader);
-    auto fs = compile_shader(GL_FRAGMENT_SHADER, frag_shader);
+// Time
 
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-    
-    return program;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
-void process_input(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
+float delta_time = 0.0f;
+float last_frame = 0.0f;
 
 int main(int argc, char *argv[]) {
     glfwInit();
@@ -77,6 +45,7 @@ int main(int argc, char *argv[]) {
     }
 
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glewExperimental = GL_TRUE;
     if (GLEW_OK != glewInit()) {
@@ -86,56 +55,53 @@ int main(int argc, char *argv[]) {
 
     glViewport(0, 0, WIDTH, HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // SETUP END
 
-    auto positions = std::array<glm::vec3, 3>{{
-        {-0.5f, -0.5f, 0.0f},
-        { 0.0f,  0.5f, 0.0f},
-        { 0.5f, -0.5f, 0.0f}
-    }};
+    Shader default_shader {"shaders/default.vs", "shaders/default.fs"};
 
-    unsigned VBO;
-    unsigned VAO;
+    auto cube_position = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    unsigned VBO, VAO;
     glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
     glBindVertexArray(VAO);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), &positions[0], GL_STATIC_DRAW);
-
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+    
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
     glEnableVertexAttribArray(0);
 
-    std::string vertex_shader =
-        "#version 330 core\n"
-        "layout(location = 0) in vec3 position;\n"
-        "\n"
-        "void main() {\n"
-        "   gl_Position = vec4(position.x, position.y, position.z, 1.0f);\n"
-        "}\n";
-
-    std::string fragment_shader =
-        "#version 330 core\n"
-        "out vec4 color;\n"
-        "\n"
-        "void main() {\n"
-        "   color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-        "}\n";
-
-    auto program = create_shader(vertex_shader, fragment_shader);
-    glUseProgram(program);
+    default_shader.use();
+    auto projection = glm::perspective(glm::radians(90.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+    default_shader.setMat4("projection", projection);
 
     while (!glfwWindowShouldClose(window)) {
+        auto current_frame = glfwGetTime();
+        delta_time = current_frame - last_frame;
+        last_frame = current_frame;
+
+
         process_input(window);
         
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(program);
+        default_shader.use();
+        auto view = default_camera.GetViewMatrix();
+        default_shader.setMat4("view", view);
+
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        auto model = glm::mat4(1.0f);
+        model = glm::translate(model, cube_position);
+        default_shader.setMat4("model", model);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         auto error = glGetError();
         if (error != GL_NO_ERROR) {
@@ -147,5 +113,44 @@ int main(int argc, char *argv[]) {
     }
 
     glfwTerminate();
-    return EXIT_SUCCESS;
+    return 0;
+}
+
+// Window resize
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
+// Keyboard
+
+void process_input(GLFWwindow *window) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) default_camera.ProcessKeyboard('w', delta_time);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) default_camera.ProcessKeyboard('s', delta_time);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) default_camera.ProcessKeyboard('a', delta_time);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) default_camera.ProcessKeyboard('d', delta_time);
+}
+
+// Mouse
+
+bool first_mouse = true;
+float lastX = 1280.0 / 2.0;
+float lastY =  720.0 / 2.0;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (first_mouse) {
+        lastX = xpos;
+        lastY = ypos;
+        first_mouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    default_camera.ProcessMouseMovement(xoffset, yoffset);
 }
