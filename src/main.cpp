@@ -1,7 +1,12 @@
 #include <iostream>
+#include <array>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 #include <iostream>
@@ -84,11 +89,11 @@ int main(int argc, char *argv[]) {
 
     // SETUP END
 
-    float positions[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f
-    };
+    auto positions = std::array<glm::vec3, 3>{{
+        {-0.5f, -0.5f, 0.0f},
+        { 0.0f,  0.5f, 0.0f},
+        { 0.5f, -0.5f, 0.0f}
+    }};
 
     unsigned VBO;
     unsigned VAO;
@@ -98,7 +103,7 @@ int main(int argc, char *argv[]) {
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), &positions[0], GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
     glEnableVertexAttribArray(0);
@@ -124,7 +129,6 @@ int main(int argc, char *argv[]) {
 
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
-
         
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
