@@ -82,6 +82,9 @@ class Camera {
             Position -= Right * velocity;
         if (key == 'd')
             Position += Right * velocity;
+
+        // if (Position.y < 0.0f) Position.y = 0.0f;
+        Position.y = 0.0f;
     }
 
     void ProcessMouseMovement(float xoffset, float yoffset) {

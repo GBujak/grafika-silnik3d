@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
 
     Shader default_shader {"shaders/default.vs", "shaders/default.fs"};
 
-    auto cube_position = glm::vec3(0.0f, 0.0f, 0.0f);
+    auto cube_position = glm::vec3(0.0f, 0.0f, -10.0f);
 
     unsigned VBO, VAO;
     glGenVertexArrays(1, &VAO);
