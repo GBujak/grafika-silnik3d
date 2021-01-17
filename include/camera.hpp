@@ -74,17 +74,19 @@ class Camera {
 
     void ProcessKeyboard(char key, float deltaTime) {
         float velocity = MovementSpeed * deltaTime;
-        if (key == 'w')
-            Position += Front * velocity;
-        if (key == 's')
-            Position -= Front * velocity;
-        if (key == 'a')
-            Position -= Right * velocity;
-        if (key == 'd')
-            Position += Right * velocity;
+        auto delta_position = glm::vec3(0.0, 0.0, 0.0);
 
-        // if (Position.y < 0.0f) Position.y = 0.0f;
-        Position.y = 0.0f;
+        if (key == 'w')
+            delta_position += Front * velocity;
+        if (key == 's')
+            delta_position -= Front * velocity;
+        if (key == 'a')
+            delta_position -= Right * velocity;
+        if (key == 'd')
+            delta_position += Right * velocity;
+
+        delta_position.y = 0.0;
+        Position += glm::normalize(delta_position) * MovementSpeed * deltaTime;
     }
 
     void ProcessMouseMovement(float xoffset, float yoffset) {

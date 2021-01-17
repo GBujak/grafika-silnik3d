@@ -1,7 +1,5 @@
 #pragma once
 
-// Klasa zaczerpnięta z <https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/shader.h>
-
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
