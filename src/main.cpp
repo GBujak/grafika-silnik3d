@@ -16,6 +16,7 @@
 #include <alloca.h>
 
 #include <cube.hpp>
+#include <enemy.hpp>
 
 constexpr unsigned WIDTH = 1280, HEIGHT = 720;
 
@@ -63,7 +64,8 @@ int main(int argc, char *argv[]) {
 
     Shader default_shader {"shaders/default.vs", "shaders/default.fs"};
 
-    auto cube_position = glm::vec3(0.0f, 0.0f, -10.0f);
+    auto cube_position = glm::vec3(0.0f, 1.0f, -10.0f);
+    auto enemy = Enemy(cube_position, default_camera.pos(), Enemy::AiVariant::CircularMovement);
 
     unsigned VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -72,7 +74,7 @@ int main(int argc, char *argv[]) {
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), &cube_vertices[0], GL_STATIC_DRAW);
     
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
     glEnableVertexAttribArray(0);
@@ -98,7 +100,8 @@ int main(int argc, char *argv[]) {
 
         glBindVertexArray(VAO);
         auto model = glm::mat4(1.0f);
-        model = glm::translate(model, cube_position);
+        enemy.update(delta_time, default_camera.pos());
+        model = glm::translate(model, enemy.pos());
         default_shader.setMat4("model", model);
 
         glDrawArrays(GL_TRIANGLES, 0, 36);

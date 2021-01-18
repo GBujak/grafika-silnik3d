@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd builddir
-ninja
-cd ..
+cd builddir && \
+ninja && \
+cd .. && \
 builddir/grafika-silnik3d
