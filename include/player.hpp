@@ -16,7 +16,6 @@ class Player {
 
     void try_shoot(float absolute_time, World& world) {
         if (absolute_time - m_last_shot_time >= SHOT_RECOVERY) {
-        std::cout << "try shoot" << std::endl;
             world.handle_ray(Ray(m_camera.pos(), m_camera.aim_vector()));
             m_last_shot_time = absolute_time;
         }            
