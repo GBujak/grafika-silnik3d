@@ -10,6 +10,7 @@
 
 #include <camera.hpp>
 #include <shader.hpp>
+#include <mesh.hpp>
 
 #include <string>
 #include <iostream>
@@ -69,14 +70,7 @@ int main(int argc, char *argv[]) {
     auto cube_position = glm::vec3(0.0f, 1.0f, -10.0f);
     auto enemy = Enemy(cube_position, default_camera.pos(), Enemy::AiVariant::CircularMovement);
 
-    unsigned VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), &cube_vertices[0], GL_STATIC_DRAW);
+    auto cube_mesh = Mesh{ cube_vertices, 36 * 3 };
     
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
     glEnableVertexAttribArray(0);
@@ -100,13 +94,13 @@ int main(int argc, char *argv[]) {
         auto view = default_camera.GetViewMatrix();
         default_shader.setMat4("view", view);
 
-        glBindVertexArray(VAO);
+        cube_mesh.use();
         auto model = glm::mat4(1.0f);
         enemy.update(delta_time, default_camera.pos());
         model = glm::translate(model, enemy.pos());
         default_shader.setMat4("model", model);
 
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        cube_mesh.draw();
 
         auto error = glGetError();
         if (error != GL_NO_ERROR) {

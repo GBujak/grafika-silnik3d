@@ -8,7 +8,7 @@ class Mesh {
     size_t m_float_count;
     
     public:
-    Mesh(float* vertices, size_t float_count) {
+    Mesh(const float* vertices, size_t float_count) {
         m_float_count = float_count;
 
         glGenVertexArrays(1, &m_VAO);
