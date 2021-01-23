@@ -35,14 +35,14 @@ void Enemy::update(float time_diff, glm::vec3 player_position) {
     if (m_ai_variant == AiVariant::CircularMovement) {
         m_radian_position += EnemyConstants::RADIAL_SPEED * time_diff;
         m_player_distance -= EnemyConstants::APPROACH_SPEED * time_diff;
-        std::cout << "----------" << std::endl;
-        std::cout << m_player_distance << std::endl;
-        std::cout << m_radian_position << std::endl;
+        // std::cout << "----------" << std::endl;
+        // std::cout << m_player_distance << std::endl;
+        // std::cout << m_radian_position << std::endl;
         float x = sinf(m_radian_position) * m_player_distance;
         float z = cosf(m_radian_position) * m_player_distance;
-        std::cout << x << " - " << z << std::endl;
+        // std::cout << x << " - " << z << std::endl;
         m_position = player_position + glm::vec3(x, 1.0, z);
-        std::cout << m_position.x << "-" << m_position.y << "-" << m_position.z << std::endl;
+        // std::cout << m_position.x << "-" << m_position.y << "-" << m_position.z << std::endl;
     }
 }
 

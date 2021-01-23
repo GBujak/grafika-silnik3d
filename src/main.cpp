@@ -60,6 +60,8 @@ int main(int argc, char *argv[]) {
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    glEnable(GL_DEPTH_TEST);
+
     // SETUP END
 
     Shader default_shader {"shaders/default.vs", "shaders/default.fs"};
