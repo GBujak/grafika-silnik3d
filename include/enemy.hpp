@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/trigonometric.hpp>
+#include <unordered_map>
 
 namespace EnemyConstants {
     constexpr float ENEMY_RADIUS     = 1.0f;               // Do wykrywania kolizji
@@ -26,6 +27,8 @@ class Enemy {
         SinusoidalMovement,
         CircularMovement
     };
+
+    static const std::unordered_map<AiVariant, glm::vec4> AI_COLOR_MAP;
     
     private:
     glm::vec3 m_position;
@@ -49,4 +52,10 @@ class Enemy {
     void update(float time_diff, glm::vec3 player_position); 
     glm::vec3 pos();
     glm::vec4 model_matrix();
+
+    glm::vec4 color() { return AI_COLOR_MAP.at(m_ai_variant); }
+
+    float player_disance(glm::vec3 player_position) {
+        return glm::length(m_position - player_position);
+    }
 };

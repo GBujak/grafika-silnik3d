@@ -15,6 +15,9 @@ void Renderer::draw_enemy(Enemy& enemy) {
     model = glm::translate(model, enemy.pos());
     m_enemy_shader.setMat4("model", model);
 
+    // color
+    m_enemy_shader.setVec4("color", enemy.color());
+
     m_enemy_mesh.use();
     m_enemy_mesh.draw();
 }

@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        world.update(current_frame, delta_time, player.cam().pos());
+        auto score = world.update(current_frame, delta_time, player.cam().pos());
         for (auto& e: world.enemies()) 
             renderer.draw_enemy(e);
         renderer.draw_floor();
@@ -118,6 +118,11 @@ int main(int argc, char *argv[]) {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        if (score != -1) {
+            std::cout << "Przetrwano " << score << " fal wrogów!" << std::endl;
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        }
     }
 
     glfwTerminate();

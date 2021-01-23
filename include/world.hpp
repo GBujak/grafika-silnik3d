@@ -15,6 +15,8 @@ class World {
     public:
     std::vector<Enemy>& enemies() { return m_enemies; }
 
-    void update(float absolute_time, float time_diff, glm::vec3 player_pos);
+    // Zwraca przetrwane fale wrogów, gdy gra się skończyła, -1, gdy gra trwa
+    int update(float absolute_time, float time_diff, glm::vec3 player_pos);
+
     void handle_ray(Ray ray);
 };

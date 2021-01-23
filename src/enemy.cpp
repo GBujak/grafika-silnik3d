@@ -3,6 +3,9 @@
 #include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
 #include <iostream>
+#include <math.h>
+#include <unordered_map>
+
 
 Enemy::Enemy(glm::vec3 position, glm::vec3 player_position, AiVariant ai_variant) {
     this->m_position           = position;
@@ -57,14 +60,10 @@ void Enemy::update(float time_diff, glm::vec3 player_position) {
     if (m_ai_variant == AiVariant::CircularMovement) {
         m_radian_position += EnemyConstants::RADIAL_SPEED * time_diff;
         m_player_distance -= EnemyConstants::APPROACH_SPEED * time_diff;
-        // std::cout << "----------" << std::endl;
-        // std::cout << m_player_distance << std::endl;
-        // std::cout << m_radian_position << std::endl;
         float x = sinf(m_radian_position) * m_player_distance;
+        float y = tanf(glm::radians(45.0f)) * m_player_distance;
         float z = cosf(m_radian_position) * m_player_distance;
-        // std::cout << x << " - " << z << std::endl;
-        m_position = player_position + glm::vec3(x, 1.0, z);
-        // std::cout << m_position.x << "-" << m_position.y << "-" << m_position.z << std::endl;
+        m_position = player_position + glm::vec3(x, y, z);
     }
 }
 
@@ -75,3 +74,9 @@ glm::vec3 Enemy::pos() {
 glm::vec4 Enemy::model_matrix() {
     return glm::vec4(pos(), 1.0f); // TODO: Obrót modelu
 }
+
+const std::unordered_map<Enemy::AiVariant, glm::vec4> Enemy::AI_COLOR_MAP {
+    {AiVariant::StraightLineMovement, glm::vec4(0.192, 0.439, 0.871, 1.0)},
+    {AiVariant::SinusoidalMovement,   glm::vec4(0.192, 0.871, 0.282, 1.0)},
+    {AiVariant::CircularMovement,     glm::vec4(0.871, 0.620, 0.192, 1.0)},
+};
