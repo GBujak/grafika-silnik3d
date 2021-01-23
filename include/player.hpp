@@ -21,5 +21,8 @@ class Player {
             m_last_shot_time = absolute_time;
         }            
     }
-        
+
+    bool can_shoot(float absolute_time) {
+        return (absolute_time - m_last_shot_time >= SHOT_RECOVERY);
+    }
 };

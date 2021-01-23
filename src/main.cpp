@@ -23,6 +23,8 @@
 #include <globals.hpp>
 #include <player.hpp>
 #include <world.hpp>
+#include <floor.hpp>
+#include <crosshair.hpp>
 
 #include <renderer.hpp>
 
@@ -74,13 +76,20 @@ int main(int argc, char *argv[]) {
     // SETUP END
 
     Shader default_shader {"shaders/default.vs", "shaders/default.fs"};
-
-    auto cube_position = glm::vec3(0.0f, 1.0f, -10.0f);
-    auto enemy = Enemy(cube_position, player.cam().pos(), Enemy::AiVariant::CircularMovement);
-
     auto cube_mesh = Mesh{ cube_vertices, 36 * 3 };
 
-    auto renderer = Renderer{ default_shader, cube_mesh, player.cam() };
+    Shader floor_shader {"shaders/floor.vs", "shaders/floor.fs"};
+    Mesh floor_mesh { floor_vertices, 6 * 3 };
+
+    Shader crosshair_shader {"shaders/crosshair.vs", "shaders/crosshair.fs"};
+    Mesh crosshair_mesh { crosshair_vertices, 12 * 3 };
+
+    auto renderer = Renderer {
+        default_shader,   cube_mesh,
+        floor_shader,     floor_mesh,
+        crosshair_shader, crosshair_mesh,
+        player.cam()
+    };
     
     while (!glfwWindowShouldClose(window)) {
         auto current_frame = glfwGetTime();
@@ -95,11 +104,12 @@ int main(int argc, char *argv[]) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        enemy.update(delta_time, player.cam().pos());
         world.update(current_frame, delta_time, player.cam().pos());
-        renderer.draw_enemy(enemy);
         for (auto& e: world.enemies()) 
             renderer.draw_enemy(e);
+        renderer.draw_floor();
+
+        renderer.draw_crosshair(player.can_shoot(current_frame));
 
         auto error = glGetError();
         if (error != GL_NO_ERROR) {
