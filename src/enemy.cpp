@@ -1,6 +1,7 @@
 #include <enemy.hpp>
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
+#include <glm/trigonometric.hpp>
 #include <iostream>
 
 Enemy::Enemy(glm::vec3 position, glm::vec3 player_position, AiVariant ai_variant) {
@@ -13,6 +14,27 @@ Enemy::Enemy(glm::vec3 position, glm::vec3 player_position, AiVariant ai_variant
         auto player_vec = player_position - position;
         m_player_distance = glm::length(player_vec);
         m_radian_position = asinf(player_vec.x / m_player_distance);
+    }
+}
+
+Enemy::Enemy(float degrees, float radius, glm::vec3 player_position) {
+    auto rads = glm::radians(degrees);
+    glm::vec3 position = player_position;
+    position.x += sinf(rads) * radius;
+    position.y += rand() % 3;
+    position.z += cosf(rads) * radius;
+    m_position = position;
+    m_no_offset_position = position;
+
+    m_radian_position = rads;
+    m_player_distance = radius;
+
+    auto ai = rand() % 3;
+
+    switch (ai) {
+        case 0: m_ai_variant = AiVariant::StraightLineMovement; break;
+        case 1: m_ai_variant = AiVariant::SinusoidalMovement; break;
+        case 2: m_ai_variant = AiVariant::CircularMovement; break;
     }
 }
 

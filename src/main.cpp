@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <cstdlib>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -19,13 +20,18 @@
 #include <cube.hpp>
 #include <enemy.hpp>
 
-constexpr unsigned WIDTH = 1280, HEIGHT = 720;
+#include <globals.hpp>
+#include <player.hpp>
+#include <world.hpp>
+
+#include <renderer.hpp>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void process_input(GLFWwindow *window);
 
-Camera default_camera {};
+Player player;
+World world;
 
 // Time
 
@@ -38,6 +44,8 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    srand(0);
 
     auto window = glfwCreateWindow(WIDTH, HEIGHT, "Silnik 3D", nullptr, nullptr);
     if (window == nullptr) {
@@ -68,39 +76,30 @@ int main(int argc, char *argv[]) {
     Shader default_shader {"shaders/default.vs", "shaders/default.fs"};
 
     auto cube_position = glm::vec3(0.0f, 1.0f, -10.0f);
-    auto enemy = Enemy(cube_position, default_camera.pos(), Enemy::AiVariant::CircularMovement);
+    auto enemy = Enemy(cube_position, player.cam().pos(), Enemy::AiVariant::CircularMovement);
 
     auto cube_mesh = Mesh{ cube_vertices, 36 * 3 };
+
+    auto renderer = Renderer{ default_shader, cube_mesh, player.cam() };
     
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
-    glEnableVertexAttribArray(0);
-
-    default_shader.use();
-    auto projection = glm::perspective(glm::radians(90.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-    default_shader.setMat4("projection", projection);
-
     while (!glfwWindowShouldClose(window)) {
         auto current_frame = glfwGetTime();
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
+        // auto f = player.cam().aim_vector();
+        // std::cout << "Front: " << f.x << " " << f.y << " " << f.z << std::endl;
 
         process_input(window);
         
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        default_shader.use();
-        auto view = default_camera.GetViewMatrix();
-        default_shader.setMat4("view", view);
-
-        cube_mesh.use();
-        auto model = glm::mat4(1.0f);
-        enemy.update(delta_time, default_camera.pos());
-        model = glm::translate(model, enemy.pos());
-        default_shader.setMat4("model", model);
-
-        cube_mesh.draw();
+        enemy.update(delta_time, player.cam().pos());
+        world.update(current_frame, delta_time, player.cam().pos());
+        renderer.draw_enemy(enemy);
+        for (auto& e: world.enemies()) 
+            renderer.draw_enemy(e);
 
         auto error = glGetError();
         if (error != GL_NO_ERROR) {
@@ -127,10 +126,12 @@ void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) default_camera.ProcessKeyboard('w', delta_time);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) default_camera.ProcessKeyboard('s', delta_time);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) default_camera.ProcessKeyboard('a', delta_time);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) default_camera.ProcessKeyboard('d', delta_time);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) player.cam().ProcessKeyboard('w', delta_time);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) player.cam().ProcessKeyboard('s', delta_time);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) player.cam().ProcessKeyboard('a', delta_time);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) player.cam().ProcessKeyboard('d', delta_time);
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) player.try_shoot(glfwGetTime(), world);
 }
 
 // Mouse
@@ -151,5 +152,5 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     lastX = xpos;
     lastY = ypos;
 
-    default_camera.ProcessMouseMovement(xoffset, yoffset);
+    player.cam().ProcessMouseMovement(xoffset, yoffset);
 }

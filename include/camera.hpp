@@ -68,6 +68,8 @@ class Camera {
 
     glm::vec3& pos() { return Position; }
 
+    glm::vec3 aim_vector() { return Front; }
+
     glm::mat4 GetViewMatrix() {
         return glm::lookAt(Position, Position + Front, Up);
     }

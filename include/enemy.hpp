@@ -44,6 +44,7 @@ class Enemy {
 
     public:
     Enemy(glm::vec3 position, glm::vec3 player_position, AiVariant ai_variant);
+    Enemy(float degree, float radius, glm::vec3 player_position);
 
     void update(float time_diff, glm::vec3 player_position); 
     glm::vec3 pos();
